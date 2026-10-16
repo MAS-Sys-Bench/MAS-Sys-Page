@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="MAS-Sys benchmarks how serving substrates shape the performance and quality of multi-agent systems.">
+  <meta name="keywords" content="MAS-Sys, multi-agent systems, benchmark, LLM serving, traces">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Evaluation Substrate Matters | MAS-Sys</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script defer src="./static/js/index.js"></script>
+</head>
+<body>
+
+<section class="hero publication-header">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">
+            The Evaluation Substrate Matters: Benchmarking Multi-Agent Serving Substrates
+          </h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Haoyuan Zheng,</span>
+            <span class="author-block">Dongting Li,</span>
+            <span class="author-block">Hancheng Ye,</span>
+            <span class="author-block">Qinsi Wang,</span>
+            <span class="author-block">Mingyuan Ma,</span>
+            <span class="author-block">Yuncheng Yao,</span>
+            <span class="author-block">Yifei Wang,</span>
+            <span class="author-block">Baijun Zhou,</span>
+            <span class="author-block">Zishan Shao,</span>
+            <span class="author-block">Tingjun Chen,</span>
+            <span class="author-block">Hai Helen Li,</span>
+            <span class="author-block">Danyang Zhuo,</span>
+            <span class="author-block">Yiran Chen</span>
+          </div>
+
+          <div class="is-size-5 publication-authors publication-affiliation">
+            <span class="author-block">Duke University</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <span class="button is-normal is-rounded is-dark is-static publication-link-placeholder"
+                      title="Paper link will be added after release">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </span>
+              </span>
+              <span class="link-block">
+                <a href="https://anonymous.4open.science/r/MAS-Sys-2D7A"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://huggingface.co/datasets/MAS-Sys/MAS-Sys-Traces"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-database"></i></span>
+                  <span>Traces</span>
+                </a>
+              </span>
+              <br>
+              <span class="link-block">
+                <a href="#construction" class="button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-project-diagram"></i></span>
+                  <span>Benchmark</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#leaderboard" class="button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-trophy"></i></span>
+                  <span>Leaderboard</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#trace-case-study" class="button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-chart-line"></i></span>
+                  <span>Examples</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section abstract-section" id="abstract">
+  <div class="container is-max-widescreen">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Multi-agent systems (MAS) usually coordinate heterogeneous models and tools to solve
+            complex tasks, creating a growing need for reliable evaluation. However, a multi-agent
+            workflow that is fastest in one serving environment can lose its advantage in another,
+            even when its models, prompts, and task remain fixed. This makes a benchmark result
+            conditional on how the workflow is executed.
+          </p>
+          <p>
+            We introduce <strong>MAS-Sys</strong>, a benchmark for measuring this dependence in
+            multi-agent large language model (LLM) systems. MAS-Sys executes the same
+            candidate&ndash;task pairs across <strong>serving substrates and load regimes</strong>,
+            using <strong>five workload families</strong> spanning software repair, research synthesis, financial
+            analysis, interactive control, and diagram generation. It records task quality alongside
+            delivery, latency, cost, resource pressure, and failure evidence.
+          </p>
+          <p>
+            In a controlled motivation diagnostic, the <strong>Star workflow falls from first to
+            fourth</strong> in mean-latency rank under KV-cache pressure, while <strong>Chain rises
+            from fourth to first</strong>. The substrate sweeps further show that increasing load
+            creates long runtime tails and timeout pressure. In several task families, quality among
+            evaluated outputs changes less than effective quality over submitted jobs: the system
+            delivers fewer usable results even when the surviving outputs remain competitive. Tool
+            and runtime traces reveal that these outcomes involve <strong>both model serving and
+            non-model execution</strong>. Together, the results motivate evaluating MAS designs over
+            explicit operating conditions and reporting which tasks are delivered, how well they are
+            solved, and where execution breaks down.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section construction-section" id="construction">
+  <div class="container is-max-widescreen">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Benchmark Construction</h2>
+      </div>
+    </div>
+
+    <figure class="paper-figure architecture-figure">
+      <a href="./static/images/massys_pipeline.png" aria-label="Open the MAS-Sys evaluation architecture at full resolution">
+        <img src="./static/images/massys_pipeline.png"
+             alt="MAS-Sys pipeline from workload sampling and planning through substrate execution, routing, metrics, and results.">
+      </a>
+      <figcaption>
+        <strong>MAS-Sys Evaluation Architecture:</strong>
+        MAS-Sys separates the multi-agent candidates and tasks from the substrate that executes them, 
+        prepare mixed-domain workload plans frozen while the serving condition changes, executes matched 
+        plans across serving substrates, and records service behavior together with task outcomes.
+      </figcaption>
+    </figure>
+
+    <figure class="paper-figure candidate-pool-figure">
+      <h3 class="figure-title">Candidate Pool and Structural Diversity</h3>
+      <div class="candidate-overview-grid">
+        <div class="candidate-panel task-pool-panel">
+          <h4>Task families</h4>
+          <div class="task-pool-content">
+            <div class="task-pool-donut"
+                 role="img"
+                 aria-label="876 candidate tasks: 300 SWE-Bench, 292 PaperBanana, 161 DeepFund, 100 ResearchBench, and 23 PinchBench tasks.">
+              <div class="donut-center">
+                <strong>876</strong>
+                <span>candidate tasks</span>
+              </div>
+            </div>
+            <ul class="task-pool-legend" aria-hidden="true">
+              <li><span style="--item-color:#4c78a8"></span><strong>SWE-Bench</strong><small>300 · 34.2%</small></li>
+              <li><span style="--item-color:#e45756"></span><strong>PaperBanana</strong><small>292 · 33.3%</small></li>
+              <li><span style="--item-color:#54a24b"></span><strong>DeepFund</strong><small>161 · 18.4%</small></li>
+              <li><span style="--item-color:#9c6bb3"></span><strong>ResearchBench</strong><small>100 · 11.4%</small></li>
+              <li><span style="--item-color:#f58518"></span><strong>PinchBench</strong><small>23 · 2.6%</small></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="candidate-panel structure-pool-panel">
+          <h4>Generated MAS candidates</h4>
+          <a href="./static/images/candidate_structure.png"
+             aria-label="Open candidate topology, agent count, and agent type distributions at full resolution">
+            <img src="./static/images/candidate_structure.png"
+                 alt="Distributions of MAS candidate topology, number of agents, and agent role types by workload family.">
+          </a>
+        </div>
+      </div>
+      <figcaption>
+        <strong>Candidate Task Pool:</strong>
+        Five workload families are paired with heterogeneous MAS plans spanning multiple topologies,
+        agent counts, and role compositions.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section leaderboard-section" id="leaderboard">
+  <div class="container is-max-widescreen">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Leaderboard</h2>
+        <div class="content has-text-justified section-introduction">
+          <p>
+            The main sweep evaluates five serving cells across two hardware regimes and multiple
+            offered loads. System behavior and task quality are reported separately below, with one
+            table per hardware configuration.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="paper-figure result-figure">
+      <h3 class="figure-title">System-Level Results</h3>
+      <a href="./static/images/service_results.png" aria-label="Open system-level results at full resolution">
+        <img src="./static/images/service_results.png"
+             alt="System-level benchmark results across serving substrates, hardware configurations, and offered loads.">
+      </a>
+      <figcaption>
+        Completion rate is the fraction of submitted jobs that finish before the 30-minute submission
+        window closes; execution-success rate is the fraction that returns a usable final artifact,
+        independent of task correctness.
+      </figcaption>
+    </figure>
+
+    <div class="results-table-pair system-table-pair">
+      <div class="results-table-block" data-table-id="system-2h">
+        <h4 class="table-title">2&times;H200</h4>
+        <div class="control-panel table-control-panel" aria-label="2 by H200 system result filters">
+          <label>
+            <span>Target load</span>
+            <select data-role="jps-filter" aria-label="Select target load for 2 by H200 system results"></select>
+          </label>
+          <label>
+            <span>Metric group</span>
+            <select data-role="metric-group-filter" aria-label="Select metric group for 2 by H200 system results"></select>
+          </label>
+        </div>
+        <div class="error-banner" data-role="error-banner" role="alert" hidden></div>
+        <div class="table-wrap" aria-live="polite">
+          <table class="leaderboard-table">
+            <thead data-role="table-head"></thead>
+            <tbody data-role="table-body"><tr><td class="loading-cell">Loading 2&times;H200 experiment cells&hellip;</td></tr></tbody>
+          </table>
+        </div>
+        <p class="table-note" data-role="table-note"></p>
+      </div>
+
+      <div class="results-table-block" data-table-id="system-4h">
+        <h4 class="table-title">4&times;H200</h4>
+        <div class="control-panel table-control-panel" aria-label="4 by H200 system result filters">
+          <label>
+            <span>Target load</span>
+            <select data-role="jps-filter" aria-label="Select target load for 4 by H200 system results"></select>
+          </label>
+          <label>
+            <span>Metric group</span>
+            <select data-role="metric-group-filter" aria-label="Select metric group for 4 by H200 system results"></select>
+          </label>
+        </div>
+        <div class="error-banner" data-role="error-banner" role="alert" hidden></div>
+        <div class="table-wrap" aria-live="polite">
+          <table class="leaderboard-table">
+            <thead data-role="table-head"></thead>
+            <tbody data-role="table-body"><tr><td class="loading-cell">Loading 4&times;H200 experiment cells&hellip;</td></tr></tbody>
+          </table>
+        </div>
+        <p class="table-note" data-role="table-note"></p>
+      </div>
+    </div>
+
+    <figure class="paper-figure result-figure quality-figure">
+      <h3 class="figure-title">Task-Quality Results</h3>
+      <a href="./static/images/task_quality.png" aria-label="Open task-quality results at full resolution">
+        <img src="./static/images/task_quality.png"
+             alt="Effective and evaluated-only task-quality results across the five MAS-Sys workload families.">
+      </a>
+      <figcaption>
+        Effective quality reflects delivery failures over submitted jobs; evaluated-only quality
+        describes the outputs that reach task-specific evaluation.
+      </figcaption>
+    </figure>
+
+    <div class="results-table-pair quality-table-pair">
+      <div class="results-table-block" data-table-id="quality-2h">
+        <h4 class="table-title">2&times;H200</h4>
+        <div class="control-panel table-control-panel" aria-label="2 by H200 task quality filters">
+          <label>
+            <span>Target load</span>
+            <select data-role="jps-filter" aria-label="Select target load for 2 by H200 task quality"></select>
+          </label>
+          <label>
+            <span>Quality score</span>
+            <select data-role="quality-mode" aria-label="Select score definition for 2 by H200 task quality">
+              <option value="effective_mean_score">Effective mean</option>
+              <option value="evaluated_only_mean_score">Evaluated-only mean</option>
+            </select>
+          </label>
+        </div>
+        <div class="error-banner" data-role="error-banner" role="alert" hidden></div>
+        <div class="table-wrap" aria-live="polite">
+          <table class="leaderboard-table quality-table">
+            <thead data-role="table-head"></thead>
+            <tbody data-role="table-body"><tr><td class="loading-cell">Loading 2&times;H200 quality cells&hellip;</td></tr></tbody>
+          </table>
+        </div>
+        <p class="table-note" data-role="table-note"></p>
+      </div>
+
+      <div class="results-table-block" data-table-id="quality-4h">
+        <h4 class="table-title">4&times;H200</h4>
+        <div class="control-panel table-control-panel" aria-label="4 by H200 task quality filters">
+          <label>
+            <span>Target load</span>
+            <select data-role="jps-filter" aria-label="Select target load for 4 by H200 task quality"></select>
+          </label>
+          <label>
+            <span>Quality score</span>
+            <select data-role="quality-mode" aria-label="Select score definition for 4 by H200 task quality">
+              <option value="effective_mean_score">Effective mean</option>
+              <option value="evaluated_only_mean_score">Evaluated-only mean</option>
+            </select>
+          </label>
+        </div>
+        <div class="error-banner" data-role="error-banner" role="alert" hidden></div>
+        <div class="table-wrap" aria-live="polite">
+          <table class="leaderboard-table quality-table">
+            <thead data-role="table-head"></thead>
+            <tbody data-role="table-body"><tr><td class="loading-cell">Loading 4&times;H200 quality cells&hellip;</td></tr></tbody>
+          </table>
+        </div>
+        <p class="table-note" data-role="table-note"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section trace-case-section" id="trace-case-study">
+  <div class="container is-max-widescreen">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Trace Examples</h2>
+      </div>
+    </div>
+
+    <div class="trace-carousel" role="region" aria-roledescription="carousel"
+         aria-label="Trace examples" tabindex="0">
+      <button class="trace-carousel-arrow trace-carousel-prev" type="button"
+              aria-label="Previous trace example" aria-controls="trace-example-panel" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+      </button>
+      <div class="trace-example-panel" id="trace-example-panel"
+           role="group" aria-roledescription="slide" aria-label="Example 1 of 3">
+        <figure class="paper-figure trace-case-figure">
+          <h3 class="figure-title" data-trace-title aria-live="polite" aria-atomic="true">Example 1: 4&times;H200 0.05job/s Continuum</h3>
+          <a href="./static/images/trace_case_study.svg" data-trace-link
+             aria-label="Open the representative trace visualization at full resolution">
+            <img src="./static/images/trace_case_study.svg" data-trace-image
+                 width="1280" height="1210"
+                 alt="Timeline of 85 mixed-workload jobs aligned with concurrent jobs, GPU utilization, and KV-cache usage for run 20260503_011552.">
+          </a>
+        </figure>
+      </div>
+      <button class="trace-carousel-arrow trace-carousel-next" type="button"
+              aria-label="Next trace example" aria-controls="trace-example-panel" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>
+      </button>
+      <div class="trace-carousel-dots" role="group" aria-label="Choose a trace example">
+        <button type="button" data-trace-index="0" aria-label="Show example 1: 4 H200, 0.05 jobs/s, Continuum" aria-pressed="true" disabled></button>
+        <button type="button" data-trace-index="1" aria-label="Show example 2: 4 H200, 0.10 jobs/s, Continuum" aria-pressed="false" disabled></button>
+        <button type="button" data-trace-index="2" aria-label="Show example 3: 2 H200, 0.02 jobs/s, ORLA+SGLang" aria-pressed="false" disabled></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-widescreen content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>PlaceHolder</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            This website is adapted from the
+            <a href="https://github.com/nerfies/nerfies.github.io">Nerfies project page</a>
+            and is licensed under a
+            <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+              Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
