@@ -1,0 +1,50 @@
+[
+  {
+    "run_id": "20260503_011552",
+    "hardware": "4×H200",
+    "jps": "0.05",
+    "backend": "Continuum",
+    "image": "./static/images/trace_case_study.svg",
+    "stats": {
+      "submitted": 85,
+      "succeeded": 85,
+      "completed": 78,
+      "llmCalls": 1317,
+      "peakConcurrent": 13,
+      "failedHealthChecks": 0,
+      "healthChecks": 1636
+    }
+  },
+  {
+    "run_id": "20260506_102249",
+    "hardware": "4×H200",
+    "jps": "0.10",
+    "backend": "Continuum",
+    "image": "./static/images/trace_case_study_20260506_102249.svg",
+    "stats": {
+      "submitted": 170,
+      "succeeded": 141,
+      "completed": 122,
+      "llmCalls": 2324,
+      "peakConcurrent": 56,
+      "failedHealthChecks": 0,
+      "healthChecks": 2312
+    }
+  },
+  {
+    "run_id": "20260502_071419",
+    "hardware": "2×H200",
+    "jps": "0.02",
+    "backend": "ORLA+SGLang",
+    "image": "./static/images/trace_case_study_20260502_071419.svg",
+    "stats": {
+      "submitted": 42,
+      "succeeded": 40,
+      "completed": 39,
+      "llmCalls": 420,
+      "peakConcurrent": 7,
+      "failedHealthChecks": 325,
+      "healthChecks": 676
+    }
+  }
+]
